@@ -1,0 +1,13 @@
+{
+  "name": "session-pulse-mod",
+  "owner": { "name": "SkillEra IO, LLC", "url": "https://skillera.io" },
+  "plugins": [
+    {
+      "name": "session-pulse",
+      "source": "./",
+      "description": "Timestamps on every message, plus a row above the prompt showing when each of your open Claude Code sessions last replied and which ones have gone quiet.",
+      "version": "0.1.0",
+      "category": "productivity"
+    }
+  ]
+}

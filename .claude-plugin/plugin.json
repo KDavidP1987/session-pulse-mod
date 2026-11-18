@@ -1,0 +1,28 @@
+{
+  "name": "session-pulse",
+  "version": "0.1.0",
+  "description": "Timestamps on every message, plus a row above the prompt showing when each of your open Claude Code sessions last replied and which ones have gone quiet.",
+  "author": { "name": "SkillEra IO, LLC", "url": "https://skillera.io" },
+  "license": "MIT",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "stallMinutes": {
+      "type": "number",
+      "title": "Quiet warning (minutes)",
+      "description": "Flag a working session after this many minutes with no model or tool activity.",
+      "default": 10
+    },
+    "showMessageTimes": {
+      "type": "boolean",
+      "title": "Show message times",
+      "description": "Print the time under each prompt and reply block.",
+      "default": true
+    },
+    "showOtherSessions": {
+      "type": "boolean",
+      "title": "Show other sessions",
+      "description": "List your other open sessions on this machine in the row above the prompt.",
+      "default": true
+    }
+  }
+}
