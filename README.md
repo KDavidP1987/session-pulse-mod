@@ -2,7 +2,7 @@
 
 A Claude Code mod that shows when things happened, so you can tell at a glance whether a session is still working, is waiting for you, or has gone quiet.
 
-- **A time under every message.** Each prompt you send and each block of Claude's reply gets a dim `HH:MM:SS` line under it, the moment it appeared.
+- **A time under every message.** Each prompt you send and each block of Claude's reply gets a dim time line under it, the moment it appeared: 24-hour or 12-hour, with the date if you want it.
 - **A row above the prompt for every open session.** Each Claude Code session on the same machine that has this mod records its state in a small shared folder. Every session shows all of them:
 
   ```
@@ -41,6 +41,8 @@ In the desktop app, where `/plugin` does not run: click + next to the prompt box
 - `/pulse-name <name>` gives this session a name in the row (for example `/pulse-name billing fix`). Without a name, it goes back to the folder name. Two sessions in the same folder are told apart by a short id until you name them.
 - Settings live in `/config` under session-pulse:
   - **Quiet warning (minutes)**, default 10.
+  - **Time format**: `24-hour` (14:32:05, the default) or `12-hour` (2:32:05 PM).
+  - **Show the date**: puts a short date before each time (`Nov 18 14:32:05`), default off.
   - **Show message times**, default on.
   - **Show other sessions**, default on.
 

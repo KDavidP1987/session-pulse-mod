@@ -6,7 +6,7 @@
       "name": "session-pulse",
       "source": "./",
       "description": "Timestamps on every message, plus a row above the prompt showing when each of your open Claude Code sessions last replied and which ones have gone quiet.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "productivity"
     }
   ]

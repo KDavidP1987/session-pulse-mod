@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { ago, describe } from '../hooks/register'
+import { ago, clock, describe } from '../hooks/register'
 import type { Pulse } from '../types'
 
 const BASE = '/home/me/.claude/session-pulse'
@@ -72,6 +72,19 @@ test('time words', () => {
   expect(ago(3_900_000)).toBe('1h05m')
 })
 
+test('clock styles: 24-hour, 12-hour, with a date', () => {
+  // Built from local parts, so the test holds in any time zone.
+  const at = new Date(2026, 10, 18, 14, 32, 5).getTime()
+  const midnight = new Date(2026, 0, 3, 0, 7, 9).getTime()
+  const noon = new Date(2026, 0, 3, 12, 0, 0).getTime()
+  expect(clock(at)).toBe('14:32:05')
+  expect(clock(at, { is12Hour: true, showDate: false })).toBe('2:32:05 PM')
+  expect(clock(midnight, { is12Hour: true, showDate: false })).toBe('12:07:09 AM')
+  expect(clock(noon, { is12Hour: true, showDate: false })).toBe('12:00:00 PM')
+  expect(clock(at, { is12Hour: false, showDate: true })).toBe('Nov 18 14:32:05')
+  expect(clock(midnight, { is12Hour: true, showDate: true })).toBe('Jan 3 12:07:09 AM')
+})
+
 test('a working session with no activity past the threshold is flagged', () => {
   const p = pulse({ status: 'working', since: T0, lastActivityAt: T0 })
   expect(describe(p, T0 + 5 * 60_000, 10 * 60_000).isStalled).toBe(false)
@@ -103,6 +116,19 @@ test('the session claims a free slot and records its turns', async ($, on) => {
   const after = JSON.parse(files.get(`${BASE}/slot-01.json`)!) as Pulse
   expect(after.status).toBe('waiting')
   expect(after.lastReplyAt).toBe(T0 + 61_000)
+})
+
+test('the time format and date settings reach the band', { options: { timeFormat: '12-hour', showDate: true } }, async ($, on) => {
+  const files = new Map<string, string>()
+  const replied = new Date(2026, 10, 18, 14, 32, 5).getTime()
+  const clock = { t: replied + 3 * 60_000 }
+  engine(on, files, clock)
+  files.set(`${BASE}/slot-00.json`, JSON.stringify(pulse({ sessionId: 'a', name: 'alpha', heartbeatAt: clock.t, lastReplyAt: replied })))
+
+  await $.session.start({ cwd: '/work/my-project', surface: 'terminal', isInteractive: true })
+  const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect((await ui.find({ type: 'Text', text: /alpha/ }))?.text).toContain('alpha: replied Nov 18 2:32:05 PM (3m ago)')
+  await ui.unmount()
 })
 
 test('the band lists other live sessions, the quiet one first', async ($, on) => {

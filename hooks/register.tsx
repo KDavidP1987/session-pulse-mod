@@ -32,16 +32,25 @@ const S = {
   stallMs: 10 * 60_000,
   showTimes: true,
   showOthers: true,
+  style: { is12Hour: false, showDate: false } as ClockStyle,
   // Message id -> when this session first drew it (null: history, no stamp).
   stamps: new Map<string, number | null>(),
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-export const clock = (ms: number) => {
-  const d = new Date(ms)
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+export type ClockStyle = { is12Hour: boolean; showDate: boolean }
+
+/** Local time as `14:32:05` or `2:32:05 PM`, led by `Nov 18 ` when the date is on. */
+export const clock = (ms: number, style: ClockStyle = { is12Hour: false, showDate: false }) => {
+  const d = new Date(ms)
+  const h = d.getHours()
+  const rest = `${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  const time = style.is12Hour ? `${h % 12 === 0 ? 12 : h % 12}:${rest} ${h < 12 ? 'AM' : 'PM'}` : `${pad(h)}:${rest}`
+
+  return style.showDate ? `${MONTHS[d.getMonth()]} ${d.getDate()} ${time}` : time
 }
 
 export const ago = (ms: number) => {
@@ -59,7 +68,7 @@ export const baseName = (path: string) => path.replace(/[\\/]+$/, '').split(/[\\
 const isLive = (p: Pulse, at: number) => p.endedAt === undefined && at - p.heartbeatAt < STALE_MS
 
 /** One line describing a session's state at `at`. */
-export const describe = (p: Pulse, at: number, stallMs: number) => {
+export const describe = (p: Pulse, at: number, stallMs: number, style?: ClockStyle) => {
   if (p.status === 'working') {
     const quiet = at - p.lastActivityAt
     if (quiet >= stallMs) {
@@ -70,7 +79,7 @@ export const describe = (p: Pulse, at: number, stallMs: number) => {
   }
   if (p.lastReplyAt === null) return { text: 'no reply yet', isStalled: false }
 
-  return { text: `replied ${clock(p.lastReplyAt)} (${ago(at - p.lastReplyAt)} ago)`, isStalled: false }
+  return { text: `replied ${clock(p.lastReplyAt, style)} (${ago(at - p.lastReplyAt)} ago)`, isStalled: false }
 }
 
 const slotFile = (base: string, n: number) => `${base}/slot-${pad(n)}.json`
@@ -219,6 +228,7 @@ export const register: Register = (on, options) => {
   S.stallMs = Math.max(1, Number(options.stallMinutes ?? 10)) * 60_000
   S.showTimes = options.showMessageTimes !== false
   S.showOthers = options.showOtherSessions !== false
+  S.style = { is12Hour: options.timeFormat === '12-hour', showDate: options.showDate === true }
   S.stamps.clear()
 
   on('session.start', async ($, e, next) => {
@@ -314,7 +324,7 @@ export const register: Register = (on, options) => {
     return (
       <Box flexDirection="column">
         {node}
-        <Text dimColor>  {clock(at)}</Text>
+        <Text dimColor>  {clock(at, S.style)}</Text>
       </Box>
     )
   })
@@ -329,7 +339,7 @@ export const register: Register = (on, options) => {
     return (
       <Box flexDirection="column">
         {node}
-        <Text dimColor>  {clock(at)}</Text>
+        <Text dimColor>  {clock(at, S.style)}</Text>
       </Box>
     )
   })
@@ -340,9 +350,9 @@ export const register: Register = (on, options) => {
     const at = await read($, now)
     if (e.props.hasSurvey || mine === null || at === 0) return next(e)
     const { Box, Text } = $.ui.resolve(e)
-    const here = describe(mine, at, S.stallMs)
+    const here = describe(mine, at, S.stallMs, S.style)
     const rows = others
-      .map(p => ({ p, d: describe(p, at, S.stallMs) }))
+      .map(p => ({ p, d: describe(p, at, S.stallMs, S.style) }))
       .sort((a, b) => Number(b.d.isStalled) - Number(a.d.isStalled) || a.p.name.localeCompare(b.p.name))
       .slice(0, Math.max(0, e.props.maxRows - 1))
 

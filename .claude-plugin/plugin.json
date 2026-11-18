@@ -1,6 +1,6 @@
 {
   "name": "session-pulse",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Timestamps on every message, plus a row above the prompt showing when each of your open Claude Code sessions last replied and which ones have gone quiet.",
   "author": { "name": "SkillEra IO, LLC", "url": "https://skillera.io" },
   "license": "MIT",
@@ -11,6 +11,19 @@
       "title": "Quiet warning (minutes)",
       "description": "Flag a working session after this many minutes with no model or tool activity.",
       "default": 10
+    },
+    "timeFormat": {
+      "type": "string",
+      "title": "Time format",
+      "description": "24-hour (14:32:05) or 12-hour with AM/PM (2:32:05 PM).",
+      "options": ["24-hour", "12-hour"],
+      "default": "24-hour"
+    },
+    "showDate": {
+      "type": "boolean",
+      "title": "Show the date",
+      "description": "Put a short date before each time (Nov 18 14:32:05).",
+      "default": false
     },
     "showMessageTimes": {
       "type": "boolean",
